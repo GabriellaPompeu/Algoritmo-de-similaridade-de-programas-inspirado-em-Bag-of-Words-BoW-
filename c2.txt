@@ -1,0 +1,16 @@
+int main() {
+
+    int a = 10;
+    int b = 20;
+    int resultado = 0;
+
+    if (a < b) {
+        resultado = a + b;
+    }
+
+    while (resultado > 0) {
+        resultado = resultado - 2;
+    }
+
+    return resultado;
+}

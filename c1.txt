@@ -1,0 +1,16 @@
+int main() {
+
+    int x = 10;
+    int y = 20;
+    int soma = 0;
+
+    if (x < y) {
+        soma = x + y;
+    }
+
+    while (soma > 0) {
+        soma = soma - 1;
+    }
+
+    return soma;
+}
