@@ -36,3 +36,9 @@ sortFrequency freq = sortBy compareFreq(Map.toList freq)
 
 printEntry :: (String, Int) -> IO ()
 printEntry (word, freq) = putStrLn (word ++ " " ++show freq)
+-- Processa sequências de escape (\t e \n) em strings
+processSepEscape :: String -> String
+processSepEscape [] = []
+processSepEscape ('\\':'t':rest) = '\t' : processSepEscape rest
+processSepEscape ('\\':'n':rest) = '\n' : processSepEscape rest
+processSepEscape (c:rest) = c : processSepEscape rest
