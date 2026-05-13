@@ -6,6 +6,7 @@ import qualified Data.Set as Set
 import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Char (toLower)
+import Control.Monad.RWS.Class (MonadState(put))
 
 normalize :: String -> String
 normalize = map toLower
@@ -36,3 +37,53 @@ sortFrequency freq = sortBy compareFreq(Map.toList freq)
 
 printEntry :: (String, Int) -> IO ()
 printEntry (word, freq) = putStrLn (word ++ " " ++show freq)
+
+-- Processa sequências de escape (\t e \n) em strings
+processSepEscape :: String -> String
+processSepEscape [] = []
+processSepEscape ('\\':'t':rest) = '\t' : processSepEscape rest
+processSepEscape ('\\':'n':rest) = '\n' : processSepEscape rest
+processSepEscape (c:rest) = c : processSepEscape rest
+
+-- Lê um arquivo e cria um Set a partir das linhas
+readSet :: FilePath -> IO (Set.Set String)
+readSet path = do
+    content <- readFile path
+    return $ Set.fromList (lines content)
+
+-- Lê separadores de um arquivo e processa sequências de escape
+readSeparators :: FilePath -> IO String
+readSeparators path = do
+    content <- readFile path
+    let sepLines = lines content
+    return $ concatMap processSepEscape sepLines
+
+main :: IO ()
+main = do
+
+    --read files
+    resSet <- readSet "res.txt"
+    sepStr <- readSeparators "sep.txt"
+
+    args <- getArgs
+
+    let [file1, file2] = args
+
+    c1Content <- readFile file1
+    c2Content <- readFile file2
+    
+    -- Calcular frequências para ambos os arquivos
+    let freq1 = buildFrequency resSet sepStr c1Content
+    let freq2 = buildFrequency resSet sepStr c2Content
+    
+    -- Calcular similaridade
+    let similarity = calculateSimilarity freq1 freq2
+    
+    -- Imprimir frequências de c1 em ordem decrescente (desempate lexicográfico)
+    let sorted = sortFrequency freq1
+    mapM_ printEntry sorted
+    
+    -- Imprimir métrica de similaridade
+    putStrLn ""
+    putStrLn ("Args:" ++ show args)
+    putStrLn ("Similaridade: " ++ show similarity)
