@@ -1,0 +1,9 @@
+int main(){
+    int soma = 0;
+
+    while (soma < 5){
+        soma += 1;
+    }
+
+    return soma;
+}
