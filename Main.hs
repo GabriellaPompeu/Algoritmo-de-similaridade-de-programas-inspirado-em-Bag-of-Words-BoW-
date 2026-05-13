@@ -36,9 +36,47 @@ sortFrequency freq = sortBy compareFreq(Map.toList freq)
 
 printEntry :: (String, Int) -> IO ()
 printEntry (word, freq) = putStrLn (word ++ " " ++show freq)
+
 -- Processa sequências de escape (\t e \n) em strings
 processSepEscape :: String -> String
 processSepEscape [] = []
 processSepEscape ('\\':'t':rest) = '\t' : processSepEscape rest
 processSepEscape ('\\':'n':rest) = '\n' : processSepEscape rest
-processSepEscape (c:rest) = c : processSepEscape rest
+processSepEscape (c:rest) = c : processSepEscape rest
+
+-- Lê um arquivo e cria um Set a partir das linhas
+readSet :: FilePath -> IO (Set.Set String)
+readSet path = do
+    content <- readFile path
+    return $ Set.fromList (lines content)
+
+-- Lê separadores de um arquivo e processa sequências de escape
+readSeparators :: FilePath -> IO String
+readSeparators path = do
+    content <- readFile path
+    let sepLines = lines content
+    return $ concatMap processSepEscape sepLines
+
+main :: IO ()
+main = do
+
+    --read files
+    resSet <- readSet "res.txt"
+    sepStr <- readSeparators "sep.txt"
+    c1Content <- readFile "c1.txt"
+    c2Content <- readFile "c2.txt"
+    
+    -- Calcular frequências para ambos os arquivos
+    let freq1 = buildFrequency resSet sepStr c1Content
+    let freq2 = buildFrequency resSet sepStr c2Content
+    
+    -- Calcular similaridade
+    let similarity = calculateSimilarity freq1 freq2
+    
+    -- Imprimir frequências de c1 em ordem decrescente (desempate lexicográfico)
+    let sorted = sortFrequency freq1
+    mapM_ printEntry sorted
+    
+    -- Imprimir métrica de similaridade
+    putStrLn ""
+    putStrLn ("Similaridade: " ++ show similarity)
