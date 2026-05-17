@@ -8,19 +8,26 @@ import Data.Ord (comparing)
 import Data.Char (toLower)
 import Control.Monad.RWS.Class (MonadState(put))
 
-normalize :: String -> String
-normalize = map toLower
 
 tokenize :: String -> String -> [String]
-tokenize separators text = words[if c `elem` separators then ' ' else toLower c | c <- text]
+tokenize separators text = words[if c `elem` separators then ' ' else c | c <- text]
 
 buildFrequency :: Set.Set String -> String -> String -> Map.Map String Int
-buildFrequency reserved separators text =
-    foldl insertWord Map.empty tokens
+buildFrequency reserved separators text = go Map.empty [] text
     where
-        tokens = tokenize separators text
-        insertWord acc word = let weight = if Set.member word reserved then 2 else 1
-            in Map.insertWith (+) word weight acc
+        go acc curr [] = finalize acc curr
+        --acc: acumulador, curr: palavra atual
+        go acc curr (c:cs)
+            |c `elem` separators|| (c == ' ') =
+                let acc' = if (null curr) then acc else addWord (reverse curr) acc
+                in go acc' [] cs
+            | otherwise = go acc (c:curr) cs
+        
+        finalize acc curr = if (null curr) then acc else addWord (reverse curr) acc
+
+        addWord w acc =
+            let weight = if Set.member w reserved then 2 else 1
+            in Map.insertWith (+) w weight acc
 
 calculateSimilarity :: Map.Map String Int -> Map.Map String Int -> Double
 calculateSimilarity freq1 freq2 = if totalF1 == 0 then 0 else fromIntegral m / fromIntegral totalF1
